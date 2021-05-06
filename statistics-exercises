@@ -1,0 +1,872 @@
+# -*- coding: utf-8 -*-
+import pandas as pd
+import numpy as np
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+import seaborn as sns
+from math import sqrt
+import viz
+np.random.seed(1234)
+
+
+# In[ ]:
+
+
+plt.rc('axes.spines', top=False, right=False)
+plt.rc('figure', figsize=(9, 6))
+
+
+# In[7]:
+
+
+possible_outcomes = [1,2,3,4,5,6]
+
+
+# In[ ]:
+
+
+# a monte carlo simulation means to recreate potnetial events and emphrically take the results 
+# of simulated trials to obtain a resonably precise estimate of a disred probability
+
+
+# In[ ]:
+
+
+#lets take a hypothetical base prob
+#what is prob of rolling a 1 on a single roll?
+
+
+# In[ ]:
+
+
+#options that equal 1: just 1, literally 1
+ideal_roll = 1
+
+
+# In[2]:
+
+
+#theoretical prop: 1/6
+1/6
+
+
+# In[ ]:
+
+
+#How would we do this with a simulation? # we will take a large number of dice rolls and once we have these hypotheticals we will se on average
+# how many times it was a 1. SO this will allow us to look at the theoretical prob.
+
+
+# In[5]:
+
+
+# First we will set a value for gthe number of trials that we want to conduct
+#we have the power of computation at our finger tips.
+
+num_trials = 10 ** 5
+
+
+# In[6]:
+
+
+#we have one die roll for each trial which is our event that we call a single simulation
+n_dice = 1
+
+
+# In[ ]:
+
+
+#we will do a single simulation one million times with each simulation being a die roll
+
+
+# In[8]:
+
+
+rolls = np.random.choice(possible_outcomes, num_trials*n_dice).reshape(num_trials, n_dice)
+
+
+# In[9]:
+
+
+rolls
+
+
+# In[10]:
+
+
+rolls.shape
+
+
+# In[11]:
+
+
+rolls == 1
+
+
+# In[12]:
+
+
+(rolls ==1).mean()
+
+
+# Generating Random Numbers with Numpy
+# 
+# the numpy.ranom module provides a number of functions for generating random numbers
+# 
+# - np.random.choice: selects random options from a list
+# - np.random.uniform
+# - np.random.random
+# - np.random.randn: generates numbers from a standard normal distribution
+# - np.random.normal : generates numbers from a normal distribution
+
+# ## Example Problems
+
+# Carnival dice rolls
+# 
+# you are at a carnival
+# 
+# you pay 5 dollars and roll 3 dice. if the sum of dice is greater than 12 you get 15 dollars, less than 12 you get none
+# 
+# assume the dice are fair, should you play this game?
+# 
+#  one way we can keep track of simulation is to use a 2 dimensional matrix  we can create
+#  a matrix where each row represents ine trial .
+#  Each row will have 3 columns represent 3 dice
+
+# In[17]:
+
+
+n_trials = nrows = 10_000
+n_dice = ncols = 3
+rolls = np.random.choice([1,2,3,4,5,6], n_trials * n_dice).reshape(nrows, ncols)
+
+
+# In[15]:
+
+
+rolls.shape
+
+
+# Here we used the choice function to randomly slect an element out of 1 through 6, second thing we apply is total number of events (total number of dice to roll). 
+
+# In[18]:
+
+
+sums_by_trial = rolls.sum(axis=1)
+sums_by_trial
+
+
+# In[20]:
+
+
+viz.simulation_example1(sums_by_trial)
+
+
+# now we can convert each value in array to boolean value incidcating wether or not we won
+
+# In[23]:
+
+
+wins = sums_by_trial > 12
+
+
+# to calculate the overall win rate, we can treat weach win as 1 and loss as 0 then take the average of the array
+
+# In[25]:
+
+
+win_rate = wins.mean()
+
+
+# In[26]:
+
+
+win_rate
+
+
+# Now that we can calucalte our win rate we can caluclate the expected winnings.
+
+# In[27]:
+
+
+expected_winnings = win_rate * 15
+cost = 5
+expected_profit = expected_winnings - cost
+expected_profit
+
+
+# In[28]:
+
+
+expected_winnings
+
+
+# so we would expect based on our simulations, on average, to lose a little over a dollar each time we play this game
+
+# to answer the last part of the question we can recalculate our win rate bvased on the sumsbeing greater than or equal to 12
+
+# In[29]:
+
+
+wins = sums_by_trial >= 12
+win_rate = wins.mean()
+expected_winnings = win_rate * 15
+cost = 5
+expected_profit = expected_winnings - cost  
+expected_profit
+
+
+# if our win condition changes to the sum being greater than or equal to 12 then, based on our simulations, on average, we expect to win 58 cents.
+
+# 
+# ## Mini Exercise
+# 
+# what is the probability of rolling snake eyes (1,1) on a roll of two(fair) dice
+
+# In[30]:
+
+
+n_trials = nrows = 10_000
+n_dice = ncols = 2
+rolls = np.random.choice([1,2,3,4,5,6], n_trials * n_dice).reshape(nrows, ncols)
+
+
+# In[31]:
+
+
+sum_trials = rolls.sum(axis = 1) 
+
+
+# In[40]:
+
+
+snake = (rolls.sum(axis=1)==2).mean()
+
+
+# In[41]:
+
+
+snake
+
+
+# In[ ]:
+
+
+
+
+
+# In[38]:
+
+
+snake_eyes = (sum_trials == 2)
+
+
+# In[39]:
+
+
+snake_eyes_count = snake_eyes.mean()
+snake_eyes_count
+
+
+# In[36]:
+
+
+1/36
+
+
+# ## No Rest or Relaxation
+# - there is a 30% chance my son takes a nap on any given weekend day. What is the chance that he takes a nape at least one day this week.
+
+# In[65]:
+
+
+p_nap = 0.3
+ndays = n_cols = 2
+n_simulated_weekedns = n_rows = 10**6
+
+
+# to simulate the results from many weekends well create a 2 * 10,000 matrrix with 2 being the number of days in a weekend and 10,000 being the numberof simulations we want to run
+# 
+# to determine wether or not a nap is taken on a given day well generate a random number bewteen 0 and 1 and say that is a nap if it less than our probab of taking a nap
+
+# In[51]:
+
+
+trials = np.random.random((n_rows, n_cols))
+
+
+# In[47]:
+
+
+naps[:10]
+
+
+# In[52]:
+
+
+naps = trials < p_nap
+
+
+# In[54]:
+
+
+naps
+
+
+# Now that we have each day as either true or false we can take the sum of each row to find the total number of naps for the weekend.When we sum an array of boolean values numpy will treat True as 1 and False as 0
+
+# In[55]:
+
+
+naps.sum(axis = 1)
+
+
+# Now that we have the results of our simulation, an array where each number in the array represents how many naps were taken in a two day weekend
+
+# In[57]:
+
+
+viz.simulation_example2(naps)
+
+
+# In[58]:
+
+
+naps.sum(axis=1) >= 1
+
+
+# What is the probability no naps where taken?
+
+# In[59]:
+
+
+(naps.sum(axis=1)==0).mean()
+
+
+# In[60]:
+
+
+(naps.sum(axis=1)==2).mean()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# ## Mini Exercise:
+# 
+# there are ten options in a blind-box style collectable but you are only likely to get the one you want the most at a prob of one out of every 20 twenety boxes
+# 
+# what is prob of getting your desired collectable if you buy three blind boxes?
+# 
+# 
+
+# In[61]:
+
+
+1/20 * 1/20 * 1/20
+
+
+# In[62]:
+
+
+1/20
+
+
+# In[101]:
+
+
+p_box = 0.05
+n_blind_box = n_cols = 3
+n_blind_box_collect = n_rows = 10**6
+
+
+# In[102]:
+
+
+trial_blind_boxs = np.random.random((n_rows, n_cols))
+
+
+# In[108]:
+
+
+wanted_box = p_box > trial_blind_boxs
+
+
+# In[111]:
+
+
+(wanted_box.sum(axis=1)>=1).mean()
+
+
+# In[ ]:
+
+
+
+
+
+# ## One with Dataframes
+# 
+
+# lets take a look at one more problem
+# 
+# what is the prob of getting at least one 3 in 3 dice rols?
+# 
+# to simulate this well use  a similar strategy to how we m,oduled the dice rolls in the previous example  but this time well store the results in a pandas dataframe so that we can applt a lambda function what will check if one of the rolls was a 3
+
+# In[114]:
+
+
+n_trials = nrows = 10 ** 6
+n_dice_rolled = ncols =  3
+
+rolls = np.random.choice(([1,2,3,4,5,6]), n_trials * n_dice_rolled).reshape(nrows, ncols)
+
+
+# In[115]:
+
+
+1/3 * 1/3 * 1/3 
+
+
+# In[117]:
+
+
+pd.DataFrame(rolls).apply(lambda row: 3 in row.values, axis=1).mean()
+
+
+# Lets break down
+# 
+# - first we assign values for the number of rows and columns we are going to use.
+# - next we create the rolls variable that holds a 3 x 10,000 matric where each element is randomly chosen  number from 1 to 6
+# - lastly we create a dataframe from the rolls.
+#  - pd.DataFrame(rolls)
+#  - .apply(
+#  - .mean()
+
+# ## Mini Exercise
+# 
+# recreate blind box using stratagey above
+
+# In[135]:
+
+
+p_box = 0.05
+p_other = (1-0.05)/9
+n_blind_box = n_cols = 3
+n_blind_box_collect = n_rows = 10_000
+outcomes =[1,2,3,4,5,6,7,8,9,10]
+
+
+# In[136]:
+
+
+trial_blind_box = np.random.choice(outcomes, n_rows*n_cols, p = [p_box, p_other,p_other,p_other,p_other,p_other,p_other,p_other,p_other,p_other]).reshape(n_rows,n_cols)
+
+
+# In[137]:
+
+
+trial_blind_box
+
+
+# In[124]:
+
+
+wanted_box = p_box > trial_blind_boxs
+
+
+# In[123]:
+
+
+(wanted_box.sum(axis=1)>=1).mean()
+
+
+# In[138]:
+
+
+pd.DataFrame(trial_blind_box).apply(lambda row: 1 in row.values, axis=1).mean()
+
+
+# ## Exercises
+
+# 1.) How likely is it that you roll doubles when rolling two dice?
+
+# In[139]:
+
+
+6/36
+
+
+# In[141]:
+
+
+n_trials = nrows = 10_000
+n_dice = ncols = 2
+rolls = np.random.choice([1,2,3,4,5,6], n_trials * n_dice).reshape(nrows, ncols)
+
+
+# In[144]:
+
+
+doubles = pd.DataFrame(rolls).apply(lambda row: row[0] == row[1], axis=1).mean()
+
+
+# In[145]:
+
+
+doubles
+
+
+# 2.) If you flip 8 coins, what is the probability of getting exactly 3 heads? What is the probability of getting more than 3 heads?
+
+# In[151]:
+
+
+3/256
+
+
+# In[154]:
+
+
+5/256
+
+
+# In[152]:
+
+
+2*2*2*2*2*2*2*2
+
+
+# In[172]:
+
+
+p_heads = 1
+p_tails = 0
+flips = ncols = 8
+coin_flip = nrows = 10_000
+
+
+# In[173]:
+
+
+coin_outcomes = [0,1]
+
+
+# In[174]:
+
+
+heads_flipped = np.random.choice(coin_outcomes, flips * coin_flip).reshape(nrows,ncols)
+
+
+# In[180]:
+
+
+total_heads = heads_flipped.sum(axis=1)
+total_heads
+
+
+# In[179]:
+
+
+three_heads = (total_heads == 3).mean()
+three_heads
+
+
+# In[181]:
+
+
+more_than_three = (total_heads > 3).mean()
+more_than_three
+
+
+# 3.) There are approximitely 3 web development cohorts for every 1 data science cohort at Codeup. Assuming that Codeup randomly selects an alumni to put on a billboard, what are the odds that the two billboards I drive past both have data science students on them?
+# 
+
+# In[ ]:
+
+
+#1:3 ds for web
+#random, trials is 2
+
+
+# In[193]:
+
+
+web = 3
+ds = 1
+billboards = ncols = 2
+cdtrials = nrows = 10_000
+billoutcomes = [3,1]
+p_web = 0.75
+ds = 1-p_web
+
+
+# In[196]:
+
+
+
+bill_data = np.random.choice(billoutcomes, nrows*ncols, p =[p_web, ds]).reshape(nrows,ncols)
+bill_data
+
+
+# In[197]:
+
+
+bboard_sum = bill_data.sum(axis=1)
+
+
+# In[198]:
+
+
+data_billboard = (bboard_sum == 2).mean()
+data_billboard
+
+
+# 4.) Codeup students buy, on average, 3 poptart packages (+- 1.5) a day from the snack vending machine. If on monday the machine is restocked with 17 poptart packages, how likely is it that I will be able to buy some poptarts on Friday afternoon?
+
+# In[217]:
+
+
+n_trials = n_rows = 10000
+n_days = n_cols = 5
+
+
+# In[218]:
+
+
+pop_data = np.round(np.random.normal(3, 1.5, n_trials * n_days).reshape(n_rows,n_cols))
+
+
+# In[219]:
+
+
+sum_pop =pop_data.sum(axis=1)
+sum_pop
+
+
+# In[220]:
+
+
+pop_avail = (sum_pop < 17).mean()
+pop_avail
+
+
+# 5.) Compare Heights
+# 
+# Men have an average height of 178 cm and standard deviation of 8cm.
+# 
+# Women have a mean of 170, sd = 6cm.
+# 
+# If a man and woman are chosen at random, P(woman taller than man)?
+# 
+# 
+
+# In[222]:
+
+
+mw_trials = n_rows = 10000
+mw_days = n_cols = 2
+
+
+# In[238]:
+
+
+men_data = np.random.normal(178, 8, mw_trials * mw_days).reshape(n_rows,n_cols)
+men_data
+
+
+# In[237]:
+
+
+women_data = np.random.normal(170, 6, mw_trials * mw_days).reshape(n_rows,n_cols)
+women_data
+
+
+# In[ ]:
+
+
+
+
+
+# In[244]:
+
+
+heights_diff = np.subtract(men_data, women_data)
+heights_diff
+
+
+# In[246]:
+
+
+taller_women = (heights_diff < 0).mean()
+taller_women
+
+
+# 6.) When installing anaconda on a student's computer, there's a 1 in 250 chance that the download is corrupted and the installation fails.
+# What are the odds that after having 50 students download anaconda, no one has an installation issue? 100 students?
+
+# In[256]:
+
+
+student_down = n_rows = 10_000
+n_students = n_cols = 50
+pdfail = (1/250)
+pdpass = 1 - pdfail
+pr_outcome = [0,1]
+
+
+# In[257]:
+
+
+fifty_test = np.random.choice(pr_outcome, n_rows*n_cols, p =[pdfail, pdpass]).reshape(n_rows,n_cols)
+fifty_test
+
+
+# In[259]:
+
+
+fifty_total = fifty_test.sum(axis=1)
+fifty_total
+
+
+# In[262]:
+
+
+fifty_fail = (fifty_total <50).mean()
+fifty_fail
+
+
+# In[264]:
+
+
+fifty_pass = 1-fifty_fail
+fifty_pass
+
+
+# In[265]:
+
+
+student_down = n_rows = 10_000
+n100_students = n_cols = 100
+pdfail = (1/250)
+pdpass = 1 - pdfail
+pr_outcome = [0,1]
+
+
+# In[266]:
+
+
+hundred_test = np.random.choice(pr_outcome, n_rows*n_cols, p =[pdfail, pdpass]).reshape(n_rows,n_cols)
+hundred_test
+
+
+# In[270]:
+
+
+hundred_total = hundred_test.sum(axis=1)
+hundred_total
+
+
+# In[272]:
+
+
+hundred_fail = (hundred_total <100).mean()
+hundred_fail 
+
+
+# In[273]:
+
+
+hundred_pass = 1-hundred_fail
+hundred_pass
+
+
+# 7.) There's a 70% chance on any given day that there will be at least one food truck at Travis Park. However, you haven't seen a food truck there in 3 days. How unlikely is this?
+# 
+# How likely is it that a food truck will show up sometime this week?
+
+# In[287]:
+
+
+f_trials = n_rows = 10_000
+weekday = n_cols =3
+p_there = .70
+p_not = 1-p_there
+ft_outcomes =[0,1]
+
+
+# In[292]:
+
+
+truck_test = np.random.choice(ft_outcomes, n_rows*n_cols, p =[p_not, p_there]).reshape(n_rows,n_cols)
+truck_test
+
+
+# In[293]:
+
+
+truck_count = truck_test.sum(axis=1)
+truck_count
+
+
+# In[294]:
+
+
+truck_not_three =(truck_count == 0).mean()
+truck_not_three
+
+
+# In[295]:
+
+
+f_trials = n_rows = 10_000
+weekday = n_cols =4
+p_there = .70
+p_not = 1-p_there
+ft_outcomes =[0,1]
+
+
+# In[298]:
+
+
+truck_test4 = np.random.choice(ft_outcomes, n_rows*n_cols, p =[p_not, p_there]).reshape(n_rows,n_cols)
+truck_test4
+
+
+# In[300]:
+
+
+truck_count4 = truck_test4.sum(axis=1)
+truck_count4
+
+
+# In[301]:
+
+
+truck4 = (truck_count4 > 0).mean()
+
+
+# In[302]:
+
+
+truck4
+
+
+# 8.) If 23 people are in the same room, what are the odds that two of them share a birthday? What if it's 20 people? 40?
+
+# In[ ]:
+
+
+bd_trials = n_rows = 10_000
+people_room = n_cols =23
+outcomes =[0,1]
+
