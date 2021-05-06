@@ -863,10 +863,107 @@ truck4
 
 # 8.) If 23 people are in the same room, what are the odds that two of them share a birthday? What if it's 20 people? 40?
 
-# In[ ]:
+# In[6]:
+
+
+bdays = np.arange(1,366)
+
+
+# In[7]:
 
 
 bd_trials = n_rows = 10_000
 people_room = n_cols =23
-outcomes =[0,1]
+
+
+bday_test = np.random.choice(bdays, n_rows*n_cols).reshape(n_rows,n_cols)
+
+
+# In[11]:
+
+
+bday_data = pd.DataFrame(bday_test)
+bday_data
+
+
+# In[13]:
+
+
+bday_test_match_23 = bday_data.nunique(axis=1)
+bday_test_match_23
+
+
+# In[14]:
+
+
+bday_match_23_total = (bday_test_match_23 < 23).mean()
+
+
+# In[15]:
+
+
+bday_match_23_total
+
+
+# In[23]:
+
+
+#20 people
+people_room_20 = n_cols =20
+bd_trials = n_rows = 10_000
+
+twenty_test = np.random.choice(bdays, n_rows*n_cols).reshape(n_rows,n_cols)
+
+
+# In[24]:
+
+
+twenty_data = pd.DataFrame(twenty_test)
+twenty_data
+
+
+# In[25]:
+
+
+twenty_unique = twenty_data.nunique(axis=1)
+twenty_unique
+
+
+# In[27]:
+
+
+twenty_count = (twenty_unique < 20).mean()
+twenty_count
+
+
+# In[28]:
+
+
+#40 people
+people_room_40 = n_cols =40
+bd_trials = n_rows = 10_000
+
+forty_test = np.random.choice(bdays, n_rows*n_cols).reshape(n_rows,n_cols)
+
+
+# In[31]:
+
+
+forty_data = pd.DataFrame(forty_test)
+forty_data
+
+
+# In[33]:
+
+
+forty_unique = forty_data.nunique(axis=1)
+forty_unique
+
+
+# In[35]:
+
+
+forty_count = (forty_unique < 40).mean()
+forty_count
+
 
