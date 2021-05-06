@@ -1,0 +1,9 @@
+env.py
+package.json
+.json
+.DS_store
+envy.py
+.DS_Store
+.ipynb_checkpoints/
+__pycache__
+.vscode/
