@@ -255,42 +255,94 @@ stats.norm(mean_line, std_line).cdf(time_eat)
 
 # In[119]:
 
-
 from env import host, user, password
-
 
 def get_db_url(user, host, password, db):
     return f'mysql+pymysql://{user}:{password}@{host}/{db}'
-    
-url = get_db_url('employees')
 
-salaries_dr = pd.read_sql("SELECT * from salaries where to_date = '9999-01-01'", url)
+
+# In[7]:
+
+
+url = f'mysql+pymysql://{user}:{password}@{host}/employees'
+
+
+# In[11]:
+
+
+salaries_db = pd.read_sql("SELECT * FROM salaries WHERE to_date = '9999-01-01'", url)
+
+
+# In[12]:
+
+
+salaries_db
+
+
+# In[29]:
+
+
+salary_mean = salaries_db.salary.mean()
+salary_mean
+
+
+# In[30]:
+
+
+salary_std = salaries_db.salary.std()
+salary_std
 
 
 # - a.)What percent of employees earn less than 60,000?
 
-# In[ ]:
+# In[20]:
 
 
+salaries_mean = salaries_db.describe()
+salaries_mean = 72012.235857
+salaries_std = 17309.995380
 
+
+# In[21]:
+
+
+sixitybelow =stats.norm(salaries_mean,salaries_std).cdf(60_000)
 
 
 # - b.)What percent of employees earn more than 95,000?
 
-# In[ ]:
+# In[22]:
 
 
-
+ninetyfive = stats.norm(salaries_mean,salaries_std).sf(94999)
 
 
 # - c.)What percent of employees earn between 65,000 and 80,000?
 
-# In[ ]:
+# In[23]:
 
 
+sixity_five = stats.norm(salaries_mean,salaries_std).cdf(65000)
+sixity_five
 
+
+# In[24]:
+
+
+eighty = stats.norm(salaries_mean,salaries_std).sf(79999)
+eighty
+
+
+# In[25]:
+
+
+1-sixity_five - eighty
 
 
 # - d.)What do the top 5% of employees make?
 
+# In[27]:
+
+
+stats.norm(salaries_mean,salaries_std).isf(.05)
 # In[ ]:
