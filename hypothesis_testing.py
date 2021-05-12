@@ -970,3 +970,344 @@ if (p/2 < alpha) & (t > 0):
 else:
     print("We fail to reject the null hypothesis")
 
+
+
+###### Correlation Testing
+
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from math import sqrt
+
+from scipy import stats
+from pydataset import data
+
+alpha = 0.05
+
+
+# ### 1.) Use the telco_churn data. Does tenure correlate with monthly charges? Total charges? What happens if you control for phone and internet service?
+
+# #### a.) Does tenure correlate with monthly charges?
+
+# In[6]:
+
+
+telco_df = pd.read_csv('Cust_Churn_Telco.csv')
+telco_df.head()
+telco_df = telco_df.dropna()
+
+
+# In[7]:
+
+
+x = telco_df['tenure'].astype(float)
+y = telco_df['MonthlyCharges'].astype(float)
+
+
+# In[8]:
+
+
+plt.scatter(x,y)
+plt.ylim(0,500)
+
+
+# H0: there is no linear relationship between tenure and monthly charges.
+# Ha: there is a linear relationship between tenure and monthly charges.
+
+# In[9]:
+
+
+r, p = stats.pearsonr(x,y)
+r,p
+
+
+# #### p < alpha # we reject the null and accept the alternate
+
+# 
+
+# #### b.) total charges
+
+# In[10]:
+
+
+# b.) total charges
+#H0: there is no linear relationship between tenure and total charges.
+#Ha: there is a linear relationship between tenure and total charges.
+x = telco_df['tenure'].astype(float)
+y = telco_df['TotalCharges'].astype(float)
+
+
+# In[11]:
+
+
+plt.scatter(x,y)
+plt.ylim(0,500)
+
+
+# In[12]:
+
+
+r, p = stats.pearsonr(x,y)
+r,p
+
+
+# #### p < alpha # we reject the null and accept the alternate
+
+# 
+
+# In[13]:
+
+
+telco_df.head()
+
+
+# #### c.) What happens if you control for phone and internet service?
+
+# In[14]:
+
+
+#has phone service
+x = telco_df[telco_df.PhoneService == 'Yes'].tenure
+y = telco_df[telco_df.PhoneService =='Yes'].MonthlyCharges
+
+
+# In[15]:
+
+
+r, p = stats.pearsonr(x,y)
+r,p
+
+
+# In[16]:
+
+
+# no phone service
+x = telco_df[telco_df.PhoneService != 'Yes'].tenure
+y = telco_df[telco_df.PhoneService !='Yes'].MonthlyCharges
+
+r, p = stats.pearsonr(x,y)
+r,p
+
+
+# In[17]:
+
+
+#internet service 
+x = telco_df[telco_df.InternetService != 'No'].tenure
+y = telco_df[telco_df.InternetService !='No'].MonthlyCharges
+
+
+# In[18]:
+
+
+r, p = stats.pearsonr(x,y)
+r,p
+
+
+# In[19]:
+
+
+#no internet service
+x = telco_df[telco_df.InternetService == 'No'].tenure
+y = telco_df[telco_df.InternetService =='No'].MonthlyCharges
+
+
+# In[20]:
+
+
+r, p = stats.pearsonr(x,y)
+r,p
+
+
+# In[21]:
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from math import sqrt
+
+from scipy import stats
+from pydataset import data
+
+
+# ### 2.) Use the employees database
+# 
+
+# In[22]:
+
+
+from env import host, user, password
+
+def get_db_url(user, host, password, db):
+    return f'mysql+pymysql://{user}:{password}@{host}/{db}'
+    
+
+
+# In[ ]:
+
+
+
+
+
+# In[23]:
+
+
+url_e = f'mysql+pymysql://{user}:{password}@{host}/employees'
+
+
+# In[24]:
+
+
+employees_db = pd.read_sql('SELECT * FROM employees', url_e)
+
+
+# - a.) Is there a relationship between how long an employee has been with the company and their salary?
+
+# In[47]:
+
+
+employees_db.head(5)
+
+
+# In[26]:
+
+
+salaries_db = pd.read_sql('SELECT * FROM salaries', url_e)
+
+title_db = pd.read_sql('SELECT * FROM titles', url_e)
+
+
+# In[27]:
+
+
+employee_sal_db = employees_db.merge(salaries_db, how='inner')
+
+
+# In[28]:
+
+
+employee_sal_db.head(5)
+
+
+# In[29]:
+
+
+employee_sal_db.info()
+
+
+# In[30]:
+
+
+#datetime module
+from datetime import date
+
+
+# In[31]:
+
+
+# need to replacee 9999-01-01 to current date. Can use .replace
+employee_sal_db['to_date'] = employee_sal_db['to_date'].replace(to_replace = employee_sal_db["to_date"].max(), value = date.today())
+
+
+# In[32]:
+
+
+#used the above variable to change to_date 9999 to todays date..
+
+
+# In[33]:
+
+
+employee_sal_db.info()
+
+
+# In[75]:
+
+
+employee_sal_db['tenure'] =  employee_sal_db.to_date - employee_sal_db.hire_date
+
+
+# In[76]:
+
+
+employee_sal_db
+
+
+# In[77]:
+
+
+employee_sal_db.info()
+
+
+# In[78]:
+
+
+employee_sal_db_new = employee_sal_db.sort_values(by = 'to_date').groupby('emp_no').last()
+employee_sal_db_new.head()
+
+
+# In[80]:
+
+
+employee_sal_db_new['tenure'] = employee_sal_db_new.tenure.astype(str)
+
+
+# In[81]:
+
+
+employee_sal_db_new.head(10)
+
+
+# In[82]:
+
+
+employee_sal_db_new.info()
+
+
+# In[83]:
+
+
+employee_sal_db_new['tenure'] = employee_sal_db_new.tenure.str.strip('days').astype(int)
+
+
+# In[84]:
+
+
+employee_sal_db_new.head(5)
+
+
+# In[85]:
+
+
+new_df = employee_sal_db_new.drop(columns=['first_name', 'last_name', 'gender', 'from_date', 'birth_date'])
+
+
+# In[86]:
+
+
+new_df.head()
+
+
+# In[73]:
+
+
+new_df.info()
+
+
+# In[87]:
+
+
+# so finally have the data need to correlate
+
+r, p = stats.pearsonr( new_df.tenure, new_df.salary)
+r, p
+
+
+# - Is there a relationship between how long an employee has been with the company and the number of titles they have had?
+
+# ### 3.) Use the sleepstudy data. Is there a relationship between days and reaction time?
